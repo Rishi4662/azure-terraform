@@ -1,0 +1,37 @@
+stages:
+  - stage: 
+    displayName: validate
+    #pool: 'Azure Pipelines'
+    jobs:
+      - job: 
+        steps:
+          - task: TerraformInstaller@0
+            inputs:
+              terraformVersion: '0.14.9'
+            displayName: Install '0.14.9'
+          
+          - task: TerraformTaskV1@0
+            displayName:  terraform init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Main'
+          - task: TerraformTaskV1@0
+            displayName:  terraform plan
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Main'
+          
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: 'Main'
+              Contents: |
+                **/*
+                !.terraform/**/*
+              TargetFolder: '$(Build.ArtifactStagingDirectory)/artifacts'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/artifacts'
+              ArtifactName: 'drop'
